@@ -1,6 +1,8 @@
 import express from 'express';
 const router = express.Router();
 const models = require('../models/index');
+const { check, validationResult } = require('express-validator');
+
 
 /**
  * Route untuk mengambil semua data artikel
@@ -61,7 +63,17 @@ router.get('/getpostbyid/:id', async function (req, res, next) {
 /**
  * Route untuk membuat artikel baru
  */
-router.post('/add', async function (req, res, next) {
+router.post('/add',[
+    check('title').not().isEmpty().withMessage('title is required'),
+    check('content').not().isEmpty().withMessage('content is required'),
+    check('tags').not().isEmpty().withMessage('tags is required'),
+    check('ispublished').not().isEmpty().withMessage('ispublished is required'),
+], async function (req, res, next) {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() })
+    }
+
     try {
         const { title, content, tags, ispublished } = req.body;
         const dataPost = await models.posts.create({
@@ -85,7 +97,14 @@ router.post('/add', async function (req, res, next) {
 /**
  * Route untuk mengupdate artikel berdasarkan ID
  */
-router.put('/update', async function (req, res, next) {
+router.put('/update',[
+    check('id').not().isEmpty().withMessage('id is required').isNumeric().withMessage('id must numeric')
+], async function (req, res, next) {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() })
+    }
+
     try {
         const { id, title, content, tags, ispublished } = req.body;
         const dataPost = await models.posts.findByPk(id);
@@ -115,7 +134,13 @@ router.put('/update', async function (req, res, next) {
 /**
  * Route untuk menghapus artikel berdasarkan ID
  */
-router.delete('/delete', async function (req, res, next) {
+router.delete('/delete',[
+    check('id').not().isEmpty().withMessage('id is required').isNumeric().withMessage('id must numeric')
+], async function (req, res, next) {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() })
+    }
     try {
         const { id } = req.body;
         const dataPost = await models.posts.findByPk(id);
